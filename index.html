@@ -1,82 +1,284 @@
 <!doctype html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-  <script src="http://code.jquery.com/jquery-1.7.1.min.js" type="text/javascript"></script>  
-  <title>Happy Valentine's Day Max!</title>
-<link rel="icon" type="image/jpg" href="favicon.jpg">
-<style>
-/* HELLO MAX! THIS IS MY CSS! */
-body {
-	background-image: url('tandem_grey.png');
-}
-body::before {
-	content: url('tandem_grey.png') url('broken.png') url('clock.png') url('colors.png')  url('theCertificate.png') url('thePerks.png');
-	display: none;
-}
-.certificate {
-	background: #fff;
-	background-image: url('theCertificate.png');
-	box-shadow: 0 0 5px #888;
-}
-.benefits {
-	background: #fff;
-	background-image: url('thePerks.png');
-	box-shadow: 0 0 5px #888;
-}
-.no {
-	background-image: url('broken.png');
-}
-.yes {
-	background-image: url('colors.png');
-}
-.maybe {
-	background-image: url('clock.png');
-}
-#image {
-	height: 517px;
-	width: 780px;
-	margin: 50px auto;
-}
-</style>
-  
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Will you be my Valentine?</title>
+  <style>
+    :root {
+      --bg1: #ff5aa5;
+      --bg2: #ff9ac7;
+      --card: rgba(255,255,255,0.92);
+      --text: #1a1a1a;
+      --yes: #22c55e;
+      --no: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at 20% 20%, #fff 0%, transparent 30%),
+                  radial-gradient(circle at 80% 30%, #fff 0%, transparent 28%),
+                  linear-gradient(135deg, var(--bg1), var(--bg2));
+      overflow: hidden;
+    }
+
+    .card {
+      width: min(520px, 92vw);
+      background: var(--card);
+      border-radius: 24px;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.18);
+      padding: 28px 22px;
+      text-align: center;
+      position: relative;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(26px, 4vw, 38px);
+      letter-spacing: -0.02em;
+    }
+    p {
+      margin: 0 0 18px;
+      opacity: 0.8;
+      line-height: 1.4;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    button {
+      border: 0;
+      padding: 14px 18px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      min-width: 140px;
+      transition: transform 0.08s ease, filter 0.15s ease;
+    }
+    button:active { transform: translateY(1px) scale(0.99); }
+    button:hover { filter: brightness(1.02); }
+
+    #yesBtn { background: var(--yes); color: white; }
+    #noBtn  { background: var(--no);  color: white; position: relative; }
+
+    .hint {
+      margin-top: 14px;
+      font-size: 13px;
+      opacity: 0.65;
+    }
+
+    /* Modal */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 50;
+    }
+    .modal {
+      background: white;
+      border-radius: 22px;
+      padding: 22px 18px;
+      width: min(520px, 94vw);
+      text-align: center;
+      box-shadow: 0 22px 80px rgba(0,0,0,0.28);
+      position: relative;
+      overflow: hidden;
+    }
+    .modal h2 { margin: 4px 0 6px; font-size: 28px; }
+    .modal p { margin: 0 0 14px; opacity: 0.85; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff0f7;
+      border: 1px solid #ffd1e6;
+      color: #b30059;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .closeBtn {
+      background: #111827;
+      color: white;
+      border-radius: 14px;
+      padding: 12px 16px;
+      min-width: 160px;
+    }
+
+    /* Confetti pieces */
+    .confetti {
+      position: fixed;
+      top: -12px;
+      width: 10px;
+      height: 16px;
+      border-radius: 3px;
+      opacity: 0.95;
+      z-index: 60;
+      pointer-events: none;
+      animation: fall linear forwards;
+    }
+    @keyframes fall {
+      to {
+        transform: translate3d(var(--drift), 110vh, 0) rotate(720deg);
+        opacity: 1;
+      }
+    }
+
+    /* “No can’t work” shake */
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-6px); }
+      80% { transform: translateX(6px); }
+      100% { transform: translateX(0); }
+    }
+    .shake { animation: shake 0.35s ease; }
+
+    /* Floating hearts background */
+    .heart {
+      position: fixed;
+      bottom: -40px;
+      font-size: 22px;
+      opacity: 0.35;
+      animation: floatUp linear forwards;
+      pointer-events: none;
+      z-index: 1;
+      filter: blur(0.2px);
+    }
+    @keyframes floatUp {
+      to {
+        transform: translateY(-110vh) translateX(var(--xdrift));
+        opacity: 0;
+      }
+    }
+  </style>
 </head>
 <body>
-	<script type="text/javascript">
-/* ZOMG. FUNCTION! */
-/* I ALSO LEARNED HOW TO DO A LOT OF THIS BY CHANGING .CSS INSTEAD OF ADDING/REMOVING CLASSES, WHICH I LEARNED IS BETTER. I ALSO LEARNED THAT I SHOULD MAKE VARS FOR BODY AND IMAGE SINCE I'M USING THEM MORE THAN ONCE! */
-	var beardedBoo = function() {
-		var body = $('body'),
-		    image = $("#image");
-		body.removeClass("no").removeClass("maybe")
-		image.removeClass("benefits").removeClass("certificate")
-		var answer = prompt("Will you be my valentine? Yes, No, Maybe?").toLowerCase()
-/* .toLowerCase IS BEST PRACTICE! IT'S ALSO OK IF YOU TYPE THE FIRST LETTER INSTEAD OF THE WORD! */
-		if (answer == "yes" || answer == 'y') {
-			body.addClass("yes")
-			image.addClass("certificate")
-		} else if (answer == "maybe" || answer == 'm') {
-			body.addClass("maybe")
-/* I WANTED THE BG TO CHANGE BEFORE THE ALERT AND THE IMAGE AFTER THE PROMPT AND THE NEXT PROMPT AFTER THAT! I LEARNED THAT IF ALERT AD IMAGE ARE NOT IN THE setTimeout TOGETHER, IT DOES THEM AT THE SAME TIME. */
-			setTimeout(beardedBoo, 6000)
-			setTimeout(function() {
-				alert("Perhaps you are not aware of the many benefits")
-				image.addClass("benefits")
-			}, 200)
-/* HEY!!! */
-		} else {
-			body.addClass("no")
-			setTimeout(function() {
-				alert("Say it isn't so. Please try again.")
-				beardedBoo()
-			}, 200)
-		}
-	}
-    setTimeout(beardedBoo, 300)
-/* ALL THESE ALERTS/PROMPTS COULD GET ANNOYING, IT'S BEST TO JUST BE MY VALENTINE */
-	</script>
+  <div class="card" role="main" aria-label="Valentine questionnaire">
+    <h1>Will you be my Valentine? 💘</h1>
+    <p>Quick one-question survey. Please select an option below.</p>
 
-<div id="image"></div>
- 
+    <div class="buttons">
+      <button id="yesBtn">Yes ✅</button>
+      <button id="noBtn" aria-disabled="true" title="Out of scope.">No ❌</button>
+    </div>
+
+    <div class="hint">FYI: “No” is currently out of scope for this initiative 😉</div>
+  </div>
+
+  <div class="overlay" id="overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Celebration">
+      <div class="badge">🎉 Submission received</div>
+      <h2>Yessss! 💖</h2>
+      <p>Officially approved. Valentine partnership activated.</p>
+      <button class="closeBtn" id="closeBtn">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const yesBtn = document.getElementById("yesBtn");
+    const noBtn = document.getElementById("noBtn");
+    const overlay = document.getElementById("overlay");
+    const closeBtn = document.getElementById("closeBtn");
+
+    // Optional: personalize via URL: ?name=Sarah
+    const params = new URLSearchParams(location.search);
+    const name = params.get("name");
+    if (name) {
+      document.querySelector("h1").textContent = `Will you be my Valentine, ${name}? 💘`;
+    }
+
+    // Soft background hearts
+    function spawnHeart() {
+      const el = document.createElement("div");
+      el.className = "heart";
+      el.textContent = Math.random() > 0.25 ? "💗" : "💖";
+      el.style.left = Math.random() * 100 + "vw";
+      el.style.setProperty("--xdrift", (Math.random() * 120 - 60) + "px");
+      el.style.animationDuration = (6 + Math.random() * 5) + "s";
+      el.style.fontSize = (18 + Math.random() * 18) + "px";
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 12000);
+    }
+    setInterval(spawnHeart, 450);
+
+    // Confetti burst on YES
+    function confettiBurst(count = 140) {
+      const colors = ["#ff3b81","#ffd166","#06d6a0","#118ab2","#8338ec","#ff006e"];
+      for (let i = 0; i < count; i++) {
+        const c = document.createElement("div");
+        c.className = "confetti";
+        c.style.left = Math.random() * 100 + "vw";
+        c.style.background = colors[Math.floor(Math.random() * colors.length)];
+        c.style.transform = `rotate(${Math.random() * 360}deg)`;
+        c.style.setProperty("--drift", (Math.random() * 220 - 110) + "px");
+        c.style.animationDuration = (2.2 + Math.random() * 1.6) + "s";
+        c.style.animationDelay = (Math.random() * 0.12) + "s";
+        document.body.appendChild(c);
+        setTimeout(() => c.remove(), 4500);
+      }
+    }
+
+    function openModal() {
+      overlay.style.display = "flex";
+      overlay.setAttribute("aria-hidden", "false");
+    }
+    function closeModal() {
+      overlay.style.display = "none";
+      overlay.setAttribute("aria-hidden", "true");
+    }
+
+    yesBtn.addEventListener("click", () => {
+      // Track locally (optional)
+      localStorage.setItem("valentine_answer", "YES");
+      localStorage.setItem("valentine_time", new Date().toISOString());
+
+      confettiBurst();
+      openModal();
+    });
+
+    closeBtn.addEventListener("click", closeModal);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) closeModal();
+    });
+
+    // “No can’t work” behavior: shake + dodgy movement
+    function dodgeNo() {
+      noBtn.classList.remove("shake");
+      void noBtn.offsetWidth; // reset animation
+      noBtn.classList.add("shake");
+
+      // Move within a reasonable radius so it stays on screen
+      const dx = (Math.random() * 220 - 110);
+      const dy = (Math.random() * 120 - 60);
+      noBtn.style.transform = `translate(${dx}px, ${dy}px)`;
+      noBtn.title = "This option is not available. Please select Yes.";
+    }
+
+    noBtn.addEventListener("mouseenter", dodgeNo);
+    noBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      dodgeNo();
+      alert("🚫 That option is currently not available. Please select YES 🙂");
+    });
+  </script>
 </body>
 </html>
